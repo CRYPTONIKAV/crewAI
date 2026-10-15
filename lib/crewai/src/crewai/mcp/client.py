@@ -10,6 +10,7 @@ import time
 from typing import Any, NamedTuple, TypeVar
 from urllib.parse import urlparse
 
+from mcp.types import PaginatedRequestParams
 from typing_extensions import Self
 
 
@@ -438,8 +439,6 @@ class MCPClient:
         Follows each returned ``nextCursor`` until the response omits it,
         so tools beyond the first page are not silently dropped (#8098).
         """
-        from mcp.types import PaginatedRequestParams
-
         tools: list[dict[str, Any]] = []
         params: PaginatedRequestParams | None = None
         while True:
