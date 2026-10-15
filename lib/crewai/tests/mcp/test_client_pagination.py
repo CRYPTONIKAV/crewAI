@@ -63,7 +63,7 @@ async def test_list_tools_impl_follows_next_cursor():
     session = _PagedSession()
     client = _client_with_session(session)
     tools = await client._list_tools_impl()
-    assert [t["name"] for t in tools] == ["search-tickets", "get-ticket"]
+    assert [t["name"] for t in tools] == ["search_tickets", "get_ticket"]
     assert session.cursors_seen == [None, "page-2"]
 
 

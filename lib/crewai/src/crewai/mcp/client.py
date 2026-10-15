@@ -433,21 +433,33 @@ class MCPClient:
         return tools
 
     async def _list_tools_impl(self) -> list[dict[str, Any]]:
-        """Internal implementation of list_tools."""
-        tools_result = await asyncio.wait_for(
-            self.session.list_tools(),
-            timeout=self.discovery_timeout,
-        )
+        """Internal implementation of list_tools.
 
-        return [
-            {
-                "name": sanitize_tool_name(tool.name),
-                "original_name": tool.name,
-                "description": getattr(tool, "description", ""),
-                "inputSchema": getattr(tool, "inputSchema", {}),
-            }
-            for tool in tools_result.tools
-        ]
+        Follows each returned ``nextCursor`` until the response omits it,
+        so tools beyond the first page are not silently dropped (#8098).
+        """
+        from mcp.types import PaginatedRequestParams
+
+        tools: list[dict[str, Any]] = []
+        params: PaginatedRequestParams | None = None
+        while True:
+            tools_result = await asyncio.wait_for(
+                self.session.list_tools(params=params),
+                timeout=self.discovery_timeout,
+            )
+            tools.extend(
+                {
+                    "name": sanitize_tool_name(tool.name),
+                    "original_name": tool.name,
+                    "description": getattr(tool, "description", ""),
+                    "inputSchema": getattr(tool, "inputSchema", {}),
+                }
+                for tool in tools_result.tools
+            )
+            cursor = getattr(tools_result, "nextCursor", None)
+            if not cursor:
+                return tools
+            params = PaginatedRequestParams(cursor=cursor)
 
     async def call_tool(
         self, tool_name: str, arguments: dict[str, Any] | None = None
