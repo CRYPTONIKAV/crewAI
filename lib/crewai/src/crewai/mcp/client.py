@@ -441,6 +441,7 @@ class MCPClient:
         """
         tools: list[dict[str, Any]] = []
         params: PaginatedRequestParams | None = None
+        seen_cursors: set[str] = set()
         while True:
             tools_result = await asyncio.wait_for(
                 self.session.list_tools(params=params),
@@ -456,8 +457,9 @@ class MCPClient:
                 for tool in tools_result.tools
             )
             cursor = getattr(tools_result, "nextCursor", None)
-            if not cursor:
+            if not cursor or cursor in seen_cursors:
                 return tools
+            seen_cursors.add(cursor)
             params = PaginatedRequestParams(cursor=cursor)
 
     async def call_tool(

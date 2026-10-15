@@ -79,3 +79,17 @@ async def test_list_tools_impl_single_page_without_cursor():
     tools = await client._list_tools_impl()
     assert [t["name"] for t in tools] == ["only"]
     assert session.cursors_seen == [None]
+
+
+@pytest.mark.asyncio
+async def test_list_tools_impl_stops_on_repeated_cursor():
+    class _Looping(_PagedSession):
+        async def list_tools(self, params=None):
+            self.cursors_seen.append(getattr(params, "cursor", None))
+            return SimpleNamespace(tools=[_tool("x")], nextCursor="stuck")
+
+    session = _Looping()
+    client = _client_with_session(session)
+    tools = await client._list_tools_impl()
+    assert [t["name"] for t in tools] == ["x", "x"]
+    assert session.cursors_seen == [None, "stuck"]
