@@ -24,6 +24,12 @@ class _FakeTransport(BaseTransport):
     async def disconnect(self):
         return None
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        return None
+
 
 def _tool(name):
     return SimpleNamespace(name=name, description=f"{name} tool", inputSchema={})
