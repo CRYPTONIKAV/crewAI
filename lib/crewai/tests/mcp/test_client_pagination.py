@@ -19,16 +19,16 @@ class _FakeTransport(BaseTransport):
         super().__init__(command="fake", args=[])
 
     async def connect(self):
-        return None
+        ...
 
     async def disconnect(self):
-        return None
+        ...
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, *args):
-        return None
+        ...
 
 
 def _tool(name):
